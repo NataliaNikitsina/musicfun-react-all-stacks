@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { type ComponentProps, useState } from 'react'
+import { type ComponentProps } from 'react'
 
 import { usePlayerStore } from '@/player/model/player-store.ts'
 import {
@@ -16,6 +16,7 @@ import {
 import { IconButton } from '../IconButton'
 import { Typography } from '../Typography'
 import s from './AudioPlayer.module.css'
+import noCoverPlaceholder from '../../../assets/img/no-cover.png'
 
 export type PlayerProps = {
   onNext: () => void
@@ -36,7 +37,6 @@ export const AudioPlayer = ({
   className,
   ...props
 }: PlayerProps) => {
-
   const {
     currentTrack: track,
     currentState,
@@ -48,7 +48,7 @@ export const AudioPlayer = ({
     volume,
     isMuted,
     setVolume,
-    toggleMute
+    toggleMute,
   } = usePlayerStore()
 
   const isPlaying = currentState === 'playing'
@@ -73,7 +73,6 @@ export const AudioPlayer = ({
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = Number(e.target.value)
     setVolume(newVolume)
-  
   }
 
   // todo:task .. implement mute (add to store: muteStatus/toggleMute)
@@ -96,7 +95,7 @@ export const AudioPlayer = ({
 
       <div className={s.trackInfo}>
         <div className={s.cover}>
-          <img src={track.coverSrc} alt="cover" />
+          <img src={track.coverSrc ?? noCoverPlaceholder} alt="cover" />
         </div>
         <div className={s.info}>
           <Typography variant="body1" as="h3">
