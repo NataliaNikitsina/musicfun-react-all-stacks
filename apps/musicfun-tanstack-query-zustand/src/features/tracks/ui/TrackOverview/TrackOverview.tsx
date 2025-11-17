@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { type ComponentProps } from 'react'
 
+import noCoverPlaceholder from '@/assets/img/no-cover.png'
 import { TagsList } from '@/features/tags'
 import { Typography } from '@/shared/components'
 
@@ -26,7 +27,7 @@ export const TrackOverview = ({
   return (
     <div className={clsx(s.container, className)} {...props}>
       <div className={s.imageContainer}>
-        <img src={image} alt="" aria-hidden />
+        <img src={image ? image : noCoverPlaceholder} alt="" aria-hidden />
       </div>
 
       <div className={s.content}>
