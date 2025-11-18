@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { Link } from 'react-router'
 
-import noCoverPlaceholder from '@/assets/img/no-cover.png'
+import { usePlayerStore } from '@/player/model/player-store.ts'
 import { TableCell, Typography } from '@/shared/components'
 
 import s from './TrackInfoCell.module.css'
@@ -30,7 +30,8 @@ export const TrackInfoCell = ({
       <div className={s.box}>
         <div className={s.image} onClick={handlePlayClick}>
           {/* todo:task extrack track cover to sepaarate component and create plceholder photo if no photo */}
-          <img src={image ? image : noCoverPlaceholder} alt={title} />
+          {/*{<TrackCover image={image} alt={title} /> }*/}
+          <img src={image} alt={title} />
         </div>
         <div className={s.info}>
           <Typography
