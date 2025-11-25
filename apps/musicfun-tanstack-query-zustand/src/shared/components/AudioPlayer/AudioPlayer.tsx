@@ -1,7 +1,9 @@
 import { clsx } from 'clsx'
-import { type ComponentProps } from 'react'
+import * as React from 'react'
 
 import { usePlayerStore } from '@/player/model/player-store.ts'
+import { CoverImage } from '@/shared/components'
+import { useThrottleCallback } from '@/shared/hooks'
 import {
   PauseIcon,
   PlayIcon,
@@ -16,7 +18,6 @@ import {
 import { IconButton } from '../IconButton'
 import { Typography } from '../Typography'
 import s from './AudioPlayer.module.css'
-import { CoverImage } from '@/shared/components/CoverImage'
 
 export type PlayerProps = {
   onNext: () => void
@@ -25,7 +26,9 @@ export type PlayerProps = {
   isRepeat: boolean
   onShuffle: () => void
   onRepeat: () => void
-} & ComponentProps<'div'>
+} & React.ComponentProps<'div'>
+
+const durationSliderCoefficients = 10
 
 export const AudioPlayer = ({
   onNext,
@@ -61,17 +64,25 @@ export const AudioPlayer = ({
     }
   }
 
-  const handleChangeTime = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = Number(e.target.value)
+  const setThrottledTime = useThrottleCallback((time) => {
     seek(time)
+  }, 15)
+
+  const handleChangeTime = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = Number(e.target.value) / durationSliderCoefficients
+    setThrottledTime(time)
     // if (audioRef.current) {
     //   audioRef.current.currentTime = time
     // }
   }
 
+  const setThrottledVolume = useThrottleCallback((newVolume) => {
+    setVolume(newVolume)
+  }, 15)
+
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = Number(e.target.value)
-    setVolume(newVolume)
+    setThrottledVolume(newVolume)
   }
 
   const handleVolumeMute = () => {
@@ -129,8 +140,8 @@ export const AudioPlayer = ({
           <input
             type="range"
             min={0}
-            max={duration}
-            value={currentTime}
+            max={duration * durationSliderCoefficients}
+            value={currentTime * durationSliderCoefficients}
             onChange={handleChangeTime}
             className={clsx(s.progress, s.trackProgress)}
           />
@@ -147,7 +158,7 @@ export const AudioPlayer = ({
           min={0}
           max={1}
           step={0.01}
-          value={isMuted ? 0 : volume}
+          value={volume}
           onChange={handleVolume}
           className={clsx(s.progress, s.volumeProgress)}
         />

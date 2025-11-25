@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import {
+import React, {
   type ComponentProps,
   createContext,
   type ElementType,
@@ -88,8 +88,13 @@ export const DropdownMenu = ({ children, className }: DropdownMenuProps) => {
     triggerRef,
   }
 
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation()
+    e.preventDefault()
+  }
+
   return (
-    <div className={clsx(s.container, className)}>
+    <div className={clsx(s.container, className)} onClick={handleClick}>
       <DropdownMenuContext value={contextValue}>{children}</DropdownMenuContext>
     </div>
   )
@@ -103,20 +108,27 @@ export type DropdownMenuTriggerProps = {
   children: ReactNode
   className?: string
   asChild?: boolean
+  onClick?: (e: React.MouseEvent) => void
 }
 
 export const DropdownMenuTrigger = ({
   children,
   className,
   asChild = false,
+  onClick,
 }: DropdownMenuTriggerProps) => {
   const { onToggle, triggerRef } = useDropdownMenuContext()
+
+  const handleClick = (e: React.MouseEvent) => {
+    onToggle()
+    onClick?.(e)
+  }
 
   if (asChild) {
     return (
       <div
         ref={triggerRef as React.RefObject<HTMLDivElement>}
-        onClick={onToggle}
+        onClick={handleClick}
         className={className}>
         {children}
       </div>
@@ -127,7 +139,7 @@ export const DropdownMenuTrigger = ({
     <button
       ref={triggerRef as React.RefObject<HTMLButtonElement>}
       type="button"
-      onClick={onToggle}
+      onClick={handleClick}
       className={clsx(s.trigger, className)}>
       {children}
     </button>

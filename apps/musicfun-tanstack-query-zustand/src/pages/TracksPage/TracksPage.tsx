@@ -4,7 +4,6 @@ import { MOCK_ARTISTS } from '@/features/artists/api/artists-api'
 import { MOCK_HASHTAGS } from '@/features/tags'
 import { TracksTable } from '@/features/tracks'
 import { TrackRow } from '@/features/tracks/ui/TrackRow/TrackRow'
-import { useTracksQuery } from '@/pages/TracksPage/model/useTracksQuery.tsx'
 import { usePlayerStore } from '@/player/model/player-store.ts'
 import {
   Autocomplete,
@@ -13,43 +12,55 @@ import {
   ReactionButtons,
   Typography,
 } from '@/shared/components'
+import { useInfiniteScroll } from '@/shared/hooks'
 import { MoreIcon } from '@/shared/icons'
 import { VU } from '@/shared/utils'
 
 import { PageWrapper, SearchTextField, SortSelect } from '../common'
+import { useTracksInfinityQuery } from './model/useTracksInfinityQuery.ts'
 import s from './TracksPage.module.css'
+
+const PAGE_SIZE = 20
 
 export const TracksPage = () => {
   const [hashtags, setHashtags] = React.useState<string[]>([])
   const [artists, setArtists] = React.useState<string[]>([])
 
+  const triggerRef = React.useRef<HTMLDivElement>(null)
+  const wrapperRef = React.useRef<HTMLDivElement>(null)
+
   // todo: task search tracks filter w/o trhotling/debounce
-  // add sorting;
+  // todo: add sorting;
 
-  const { data, isPending, isError } = useTracksQuery({})
-  const { play } = usePlayerStore()
+  const { data, isPending, isError, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } =
+    useTracksInfinityQuery({ pageSize: PAGE_SIZE })
+  const { play, currentTrack, currentTime } = usePlayerStore()
 
-  const tracksRows = React.useMemo(() => {
-    return VU.isValidArray(data?.data)
-      ? data.data.map((track, index) => ({
-          addedAt: track.attributes.addedAt,
-          artists: [], // track.attributes.artists?.map((artist) => artist.name) || [],
-          currentUserReaction: track.attributes.currentUserReaction,
-          dislikesCount: 0, // track.attributes.dislikesCount,
-          duration: 0, // track.attributes.duration,
-          id: track.id,
-          image: track.attributes.images.main?.[0]?.url,
+  const tracks = React.useMemo(() => {
+    return VU.isNotEmptyArray(data?.pages) ? data.pages.map((page) => page.data).flat() : []
+  }, [data?.pages])
+  const tracksRowsData = React.useMemo(() => {
+    return VU.isNotEmptyArray(tracks)
+      ? tracks.map((track, index) => ({
           index,
-          likesCount: track.attributes.likesCount,
+          id: track.id,
           title: track.attributes.title,
+          image: track.attributes.images.main?.[0]?.url,
+          addedAt: track.attributes.addedAt,
+          artists: [], //track.attributes.artists?.map((artist) => artist.name) || [],
+          // Todo: add duration for correct progress bar & duration visibility
+          duration: 0, //track.attributes.duration,
+          likesCount: track.attributes.likesCount,
+          dislikesCount: 0, // track.attributes.dislikesCount,
+          currentUserReaction: track.attributes.currentUserReaction,
         }))
       : []
-  }, [data?.data])
+  }, [tracks])
 
   const handleClickPlay = React.useCallback(
     (trackId: string) => {
-      const track = VU.isValidArray(data?.data)
-        ? data.data.find((track) => track.id === trackId)
+      const track = VU.isNotEmptyArray(tracks)
+        ? tracks.find((track) => track.id === trackId)
         : void 0
 
       if (track) {
@@ -62,8 +73,20 @@ export const TracksPage = () => {
         })
       }
     },
-    [data?.data, play]
+    [tracks, play]
   )
+
+  useInfiniteScroll({
+    triggerRef,
+    wrapperRef,
+    callBack: () => {
+      if (!isFetching && hasNextPage && !isFetchingNextPage) {
+        void fetchNextPage()
+      }
+    },
+    rootMargin: '300px',
+    threshold: 0.1,
+  })
 
   if (isPending) {
     return <div>Loading...</div>
@@ -107,39 +130,45 @@ export const TracksPage = () => {
           />
         </div>
       </div>
-
-      {/* todo:task add infinity scroll ( for first version add button Show More ) */}
-      <TracksTable
-        trackRows={tracksRows}
-        renderTrackRow={(trackRow) => (
-          <TrackRow
-            key={trackRow.id}
-            trackRow={trackRow}
-            playingTrackId={undefined}
-            playingTrackProgress={20}
-            onPlayClick={handleClickPlay}
-            renderActionsCell={() => (
-              // todo: task Implement like/dislike
-              <>
-                <ReactionButtons
-                  entityId={trackRow.id}
-                  currentReaction={trackRow.currentUserReaction}
-                  likesCount={trackRow.likesCount}
-                  onDislike={() => {}}
-                  onLike={() => {}}
-                  onRemoveReaction={() => {}}
-                />
-                <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    {/* implement add to playlist (via popup, see figma) */}
-                    <MoreIcon />
-                  </DropdownMenuTrigger>
-                </DropdownMenu>
-              </>
-            )}
-          />
+      <div ref={wrapperRef} className={s.tableContainer}>
+        <TracksTable
+          trackRows={tracksRowsData}
+          renderTrackRow={(trackRow) => (
+            <TrackRow
+              key={trackRow.id}
+              trackRow={trackRow}
+              playingTrackId={currentTrack?.id}
+              playingTrackProgress={currentTime}
+              onPlayClick={handleClickPlay}
+              renderActionsCell={() => (
+                // todo: task Implement like/dislike
+                <>
+                  <ReactionButtons
+                    entityId={trackRow.id}
+                    currentReaction={trackRow.currentUserReaction}
+                    likesCount={trackRow.likesCount}
+                    onDislike={() => {}}
+                    onLike={() => {}}
+                    onRemoveReaction={() => {}}
+                  />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      {/* implement add to playlist (via popup, see figma) */}
+                      <MoreIcon />
+                    </DropdownMenuTrigger>
+                  </DropdownMenu>
+                </>
+              )}
+            />
+          )}
+        />
+        {hasNextPage && (
+          <div ref={triggerRef} className={s.trigger}>
+            {/* // Todo: change to little loader */}
+            <div>Loading...</div>
+          </div>
         )}
-      />
+      </div>
     </PageWrapper>
   )
 }

@@ -6,11 +6,16 @@ import {
   IconButton,
   ReactionButtons,
 } from '@/shared/components'
-import { EditIcon, MoreIcon, PlayIcon } from '@/shared/icons'
+import { DeleteIcon, EditIcon, MoreIcon, PlayIcon } from '@/shared/icons'
 
 import s from './ControlPanel.module.css'
+import shared from '@/shared/styles/shared.module.css'
 
-export const ControlPanel = () => {
+import { useDeletePlaylistAction } from '@/shared/hooks/useDeletePlaylistAction'
+
+export const ControlPanel = ({ playlistId }: { playlistId: string }) => {
+  const handleDeletePlaylist = useDeletePlaylistAction(playlistId)
+
   return (
     <div className={s.box}>
       <IconButton className={s.playButton}>
@@ -33,8 +38,12 @@ export const ControlPanel = () => {
 
         <DropdownMenuContent align="start">
           <DropdownMenuItem onClick={() => {}}>
-            <EditIcon />
+            <EditIcon className={shared.menuIcon} />
             <span>Edit</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleDeletePlaylist} className={shared.deleteItem}>
+            <DeleteIcon className={shared.menuIcon} />
+            <span>Delete</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

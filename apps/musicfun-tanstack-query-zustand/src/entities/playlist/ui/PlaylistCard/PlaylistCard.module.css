@@ -3,11 +3,13 @@
   flex-direction: column;
   gap: 4px;
   width: 264px;
+  min-height: 100%;
 }
 
 .image {
   overflow: hidden;
   height: 153px;
+  flex: 1;
   transition:
     opacity 0.2s,
     transform 0.4s;
