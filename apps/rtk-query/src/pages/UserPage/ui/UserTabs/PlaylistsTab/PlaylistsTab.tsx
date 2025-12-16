@@ -1,14 +1,13 @@
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router'
 
 import {
   PlaylistCard,
   useCreatePlaylistModal,
   useEditPlaylistModal,
-  useFetchPlaylistsQuery,
   useRemovePlaylistMutation,
 } from '@/features/playlists'
 import { ContentList } from '@/pages/common'
+import { useGetUserPageData } from '@/pages/UserPage/model'
 import {
   Button,
   DropdownMenu,
@@ -24,14 +23,11 @@ import s from './PlaylistsTab.module.css'
 
 export const PlaylistsTab = () => {
   const { t } = useTranslation()
-
-  const { userId } = useParams()
+  const { playlists } = useGetUserPageData()
 
   const { handleOpenCreatePlaylistModal } = useCreatePlaylistModal()
   const { handleOpenEditPlaylistModal } = useEditPlaylistModal()
   const [removePlaylist] = useRemovePlaylistMutation()
-
-  const { data: playlists } = useFetchPlaylistsQuery({ userId: userId! })
 
   return (
     <>

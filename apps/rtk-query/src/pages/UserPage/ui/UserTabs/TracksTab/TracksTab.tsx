@@ -1,13 +1,7 @@
-import { useParams } from 'react-router'
-
-import {
-  TracksTable,
-  useCreateTrackModal,
-  useEditTrackModal,
-  useFetchTracksQuery,
-} from '@/features/tracks'
+import { TracksTable, useCreateTrackModal, useEditTrackModal } from '@/features/tracks'
 import { TrackActions } from '@/features/tracks/ui/TrackActions/TrackActions'
 import { TrackRow } from '@/features/tracks/ui/TrackRow/TrackRow'
+import { useGetUserPageData } from '@/pages/UserPage/model'
 import noCoverPlaceholder from '@/shared/assets/images/no-cover-placeholder.avif'
 import { Button } from '@/shared/components'
 import { ImageType } from '@/shared/types/commonApi.types'
@@ -16,16 +10,9 @@ import { getImageByType } from '@/shared/utils'
 import s from './TracksTab.module.css'
 
 export const TracksTab = () => {
-  const { userId } = useParams()
   const { handleOpenCreateTrackModal } = useCreateTrackModal()
   const { handleOpenEditTrackModal } = useEditTrackModal()
-
-  const { data: tracks } = useFetchTracksQuery({
-    pageSize: 10,
-    pageNumber: 1,
-    userId: userId!,
-    includeDrafts: true,
-  })
+  const { isProfileOwner, tracks } = useGetUserPageData()
 
   // FIXME: temporary build fix, need to add url
   return (
@@ -61,7 +48,7 @@ export const TracksTab = () => {
             playingTrackId={'TEST_ID'}
             playingTrackProgress={20}
             renderActionsCell={() => (
-              <TrackActions trackId={trackRow.id} isOwner={true} />
+              <TrackActions trackId={trackRow.id} isOwner={isProfileOwner} />
               // <DropdownMenu>
               //   <DropdownMenuTrigger>
               //     <MoreIcon />

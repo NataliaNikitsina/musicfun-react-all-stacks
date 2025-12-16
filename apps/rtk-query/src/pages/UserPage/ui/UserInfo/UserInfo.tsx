@@ -1,17 +1,16 @@
-import { useMeQuery } from '@/features/auth'
+import { useGetUserPageData } from '@/pages/UserPage/model'
 import { Typography } from '@/shared/components'
 
 import s from './UserInfo.module.css'
 
 export const UserInfo = () => {
-  const { data: user } = useMeQuery()
-
+  const { userName } = useGetUserPageData()
   return (
     <div className={s.box}>
       <div className={s.avatar}>
         <img src={'https://unsplash.it/192/192'} alt="User avatar" />
       </div>
-      <Typography variant="h2">{user?.login}</Typography>
+      <Typography variant="h2">{userName}</Typography>
 
       {/* TODO: Backend don't return this data 😢 */}
 

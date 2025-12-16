@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
+import { useGetUserPageData } from '@/pages/UserPage/model'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components'
 
 import { LikedTracksTab } from './LikedTracksTab'
@@ -9,14 +10,19 @@ import { TracksTab } from './TracksTab/TracksTab'
 
 export const UserTabs = () => {
   const { t } = useTranslation()
-
-  const isProfileOwner = true // STATE FOR TESTING
+  const { isProfileOwner, userName } = useGetUserPageData()
 
   return (
     <Tabs defaultValue="playlists">
       <TabsList>
-        <TabsTrigger value="playlists">{t('tabs.playlists')}</TabsTrigger>
-        <TabsTrigger value="tracks">{t('tabs.tracks')}</TabsTrigger>
+        <TabsTrigger value="playlists">
+          {t('tabs.playlists')}
+          {!isProfileOwner && userName && ` ${userName}'s`}
+        </TabsTrigger>
+        <TabsTrigger value="tracks">
+          {t('tabs.tracks')}
+          {!isProfileOwner && userName && ` ${userName}'s`}
+        </TabsTrigger>
         {isProfileOwner && (
           <>
             <TabsTrigger value="liked-playlists">{t('tabs.liked_playlists')}</TabsTrigger>
